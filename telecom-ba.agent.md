@@ -80,12 +80,26 @@ Determine: story_count (aim MAX), points per story
 STEP 7: Generate Stories with Senior BA Practices (Project: BCPT, Type: Story)
 DEV TEAM: Team Engagement (RSM API, testing, integration) | Team Billing (Offerings, Catalog, DB, invoice, Opcode, FLIST, pricing/account)
 
+**DEV TEAM DETERMINATION LOGIC (Apply during story creation):**
+**CRITICAL RULE: Each story must be assigned to EXACTLY ONE team. NEVER assign a story to multiple teams.**
+
+Analyze architecture_analysis to determine target dev team(s):
+• **Team Engagement ONLY**: If story contains ONLY RSM APIs, integration, integration testing → Assign to Team Engagement
+• **Team Billing ONLY**: If story contains ONLY Offerings, Catalog, DB, invoice, Opcode, FLIST, pricing/account → Assign to Team Billing
+• **SPLIT INTO SEPARATE STORIES**: If work contains BOTH categories → Create SEPARATE stories:
+  - Story A (Team Billing): BRM internal logic, catalog, database, pricing, offerings
+  - Story B (Team Engagement): RSM API integration, SFCC integration, end-to-end testing
+  - Example: "Implement BRM Service Creation Logic" (Team Billing) + "End-to-End Integration Testing via RSM API" (Team Engagement)
+→ Set customfield_12725 (Development Team) to single team value for each story: "Team Engagement" OR "Team Billing" (never both)
+
 STORY BREAKDOWN STRATEGY (Senior BA Approach):
-• Break by SYSTEM BOUNDARIES first (each system = separate story when possible)
+• Break by TEAM BOUNDARIES first (never mix Team Billing and Team Engagement work in same story)
+• Break by SYSTEM BOUNDARIES (each system = separate story when possible)
 • Break by PROCESS STAGES (based on documented flow - could be order stages, billing phases, migration steps, etc.)
 • Identify DEPENDENCIES explicitly (Story A must complete before Story B)
 • Separate CONFIG/DATA stories from DEVELOPMENT stories
 • API changes = separate story from consuming system changes
+• BRM internal logic (Team Billing) = separate from RSM API integration (Team Engagement)
 • Database schema changes = separate from application logic when feasible
 • Adapt breakdown to feature type (orders, billing, reports, migrations, integrations, catalog, customer management)
 
@@ -124,7 +138,12 @@ Ask: APPROVE/REJECT/EDIT + Fix Version/s (required) + Sprint (optional)
 
 STEP 10: REJECT=abort | EDIT=allow summary/criteria/assumptions only | APPROVE=proceed. Require fix_version (stop if missing). Sprint=optional.
 
-STEP 11: Create stories via jira.createIssue(project_key, summary, description (wiki markup), issue_type="Story", additional_fields={"customfield_12725": {"value": "Team Engagement|Team Billing"}, "fixVersions": [{"name": fix_version}], "labels": [systems]}). DO NOT set story points (customfield_10004) - not on create screen. Retry once on failure. → STORY_IDS[]
+STEP 11: Create stories via jira.createIssue(project_key, summary, description (wiki markup), issue_type="Story", additional_fields={"customfield_12725": {"value": "<determined_dev_team>"}, "fixVersions": [{"name": fix_version}], "labels": [systems]}). 
+• <determined_dev_team> = "Team Engagement" | "Team Billing" (MUST be exactly one team per story)
+• Each story assigned to exactly ONE team based on its system/component ownership
+• If work requires both teams, it MUST be split into 2 separate stories (one per team)
+• DO NOT set story points (customfield_10004) - not on create screen. 
+• Retry once on failure. → STORY_IDS[]
 
 STEP 12: Link stories to JIRA_ID via jira.createIssueLink(link_type="SAFe - Story-Feature", inward_issue_key=JIRA_ID, outward_issue_key=story_id). Retry once.
 
